@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Danny's Glassworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--soft:#f7f8fa;--nav:#eef0f3;--border:#e1e5ea;--ink:#171a21;--muted:#687180;--green:#16834a;--greenbg:#eaf8ef;--red:#bd3030;--redbg:#fff0f0;--yellow:#8b6500;--yellowbg:#fff7dc}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:14px}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}.serif{font-family:Lora,Georgia,serif}
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--soft)}.login-box{background:white;border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:390px;box-shadow:0 10px 35px #1018280a}.login-head{text-align:center;margin-bottom:25px}.logo{width:48px;height:48px;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;margin:0 auto 14px;font-size:22px}.login-head h1{font-size:23px;margin:0}.login-head p{color:var(--muted);margin:7px 0 0}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}.field{margin-bottom:15px}.input{width:100%;padding:11px 12px;border:1px solid #cbd1d9;border-radius:8px;background:white;color:var(--ink);outline:none}.input:focus{border-color:#505b6a;box-shadow:0 0 0 3px #6670851c}
+.btn{border:1px solid var(--border);background:white;color:var(--ink);border-radius:8px;padding:9px 13px;font-weight:600}.btn:hover{background:var(--soft)}.primary{background:var(--ink);color:white;border-color:var(--ink)}.primary:hover{background:#303743}.danger{color:var(--red)}.btn:disabled{opacity:.55;cursor:not-allowed}.error{color:var(--red);font-size:13px;margin:0 0 12px}
+#app-page{min-height:100vh}.header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--border);background:white;position:sticky;top:0;z-index:5}.brand{display:flex;align-items:center;gap:11px}.brand-logo{width:36px;height:36px;border:1px solid var(--border);border-radius:9px;display:grid;place-items:center}.brand h1{font-size:15px;margin:0}.brand p{font-size:11px;color:var(--muted);margin:3px 0 0}.nav{display:flex;gap:5px;background:var(--nav);padding:4px;border-radius:10px;flex-wrap:wrap}.nav button{border:0;background:transparent;padding:8px 11px;border-radius:7px;color:#525b68;font-size:13px}.nav button.active{background:white;color:var(--ink);box-shadow:0 1px 3px #0001}.account{display:flex;align-items:center;gap:10px}.account-info{text-align:right}.account-name{font-weight:600;font-size:13px;display:block}.role{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700}
+main{max-width:1160px;margin:0 auto;padding:26px 20px 50px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}.section-head h2{font-size:21px;margin:0}.section-head p{color:var(--muted);margin:5px 0 0;font-size:13px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}.panel{border:1px solid var(--border);border-radius:12px;background:white;overflow:hidden}.panel-head{padding:15px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-head h3{font-size:14px;margin:0}.panel-body{padding:16px}
+.search{max-width:280px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:540px}th{text-align:left;background:var(--soft);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:12px}td{padding:12px;border-top:1px solid var(--border);vertical-align:middle}th.center,td.center{text-align:center}.badge{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:700}.ok{color:var(--green);background:var(--greenbg)}.low{color:var(--yellow);background:var(--yellowbg)}.out{color:var(--red);background:var(--redbg)}.small{font-size:12px;color:var(--muted)}.empty{text-align:center;padding:35px 15px;color:var(--muted)}
+.qty{width:68px;padding:7px;border:1px solid var(--border);border-radius:7px;text-align:center}.row-actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.form-panel{padding:16px;border:1px solid var(--border);border-radius:10px;margin-bottom:18px}.form-panel h3{font-size:14px;margin:0 0 14px}
+.cart-line{padding:12px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.cart-line:last-child{border-bottom:0}.cart-name{font-weight:600;font-size:13px}.cart-sub{font-size:12px;color:var(--muted);margin-top:4px}.cart-right{text-align:right}.cart-right strong{display:block;margin-bottom:7px}.remove{border:0;background:var(--redbg);color:var(--red);border-radius:6px;padding:5px 8px;font-size:12px}.total-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:14px;margin-top:12px;font-weight:700;font-size:17px}.cart-actions{display:grid;gap:8px;margin-top:15px}.cart-actions .btn{width:100%}.hint{font-size:12px;color:var(--muted);line-height:1.5}
+.modal{position:fixed;inset:0;background:#10182880;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}.modal-box{background:white;width:100%;max-width:520px;max-height:90vh;overflow:auto;border-radius:14px;padding:23px;box-shadow:0 20px 70px #0002}.modal-box h2{font-size:18px;margin:0 0 8px}.modal-intro{color:var(--muted);font-size:13px;margin:0 0 18px}.summary-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}.summary-total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding:14px 0}.change-box{background:var(--greenbg);border-radius:8px;padding:12px;display:flex;justify-content:space-between;font-weight:700;color:var(--green);margin:12px 0}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#171a21;color:white;padding:11px 17px;border-radius:99px;z-index:40;box-shadow:0 5px 20px #0002;max-width:calc(100% - 30px);text-align:center}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.cart-panel{order:-1}.header{position:static}.form-grid{grid-template-columns:1fr}}@media(max-width:600px){.header{padding:13px}.account-info{display:none}main{padding:18px 12px}.login-box{padding:23px}.nav{order:3;width:100%}.nav button{flex:1}.section-head h2{font-size:19px}}
+
+#welcome-page{min-height:100vh;background:#0b0b0c;color:#fff}
+#welcome-page .small{color:#9aa0aa}
+.mark{display:block;width:26px;height:26px}.brand-logo .mark{width:20px;height:20px}
+.logo-img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.w-nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 28px;height:72px;background:#0b0b0c;border-bottom:1px solid #26272b;position:sticky;top:0;z-index:10}
+.w-brand{display:flex;align-items:center;gap:12px;font-family:Lora,Georgia,serif;font-size:20px;font-weight:600}
+.w-logo{width:40px;height:40px;border:1px solid #3a3c42;border-radius:10px;display:grid;place-items:center;color:#fff;overflow:hidden}
+.w-logo .mark{width:24px;height:24px}
+.w-btn{border:1px solid #fff;background:transparent;color:#fff;padding:13px 26px;font-weight:600;font-size:15px;border-radius:0;letter-spacing:.02em}
+.w-btn:hover{background:#e7e8ea;color:#0b0b0c}
+.w-btn.solid{background:#fff;color:#0b0b0c}.w-btn.solid:hover{background:#d9dbde}
+.w-nav .w-btn{padding:10px 22px}
+.hero{position:relative;min-height:660px;height:calc(100vh - 72px);max-height:800px;overflow:hidden;background:#0b0b0c}
+.hero-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,#0b0b0c 0%,#0b0b0cd9 38%,#0b0b0c00 78%)}
+.hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:70px 28px 0}
+.hero-tag{display:inline-block;background:#0b0b0c;border:1px solid #2b2c30;padding:12px 20px;font-size:13px;letter-spacing:.16em;font-weight:600}
+.hero h1{font-size:clamp(34px,6vw,66px);line-height:1.04;letter-spacing:-.01em;margin:34px 0 14px;max-width:660px;font-weight:700;text-transform:uppercase}
+.hero .lead{font-size:clamp(16px,2vw,21px);color:#d6d8dc;max-width:560px;line-height:1.5;margin:0 0 30px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.hero-bar{position:absolute;z-index:3;left:50%;bottom:0;transform:translateX(-50%);width:min(1120px,calc(100% - 40px));background:#0b0b0c;display:grid;grid-template-columns:repeat(3,1fr) auto;align-items:center}
+.bar-cell{padding:26px 28px;border-right:1px solid #26272b}
+.bar-label{font-size:22px;font-weight:300;color:#aeb2b9}
+.bar-value{font-size:15px;color:#fff;font-weight:600;margin-top:5px}
+.bar-action{padding:0 24px}
+.catalog{background:#111113;padding:70px 28px 90px;border-top:1px solid #26272b;scroll-margin-top:72px}
+.catalog-inner{max-width:1160px;margin:0 auto}
+.catalog h2{font-size:clamp(26px,4vw,38px);margin:0 0 8px;font-family:Lora,Georgia,serif}
+.catalog-sub{color:#9aa0aa;margin:0 0 30px}
+.catalog .error{color:#ff8a8a}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px}
+.product-card{display:flex;flex-direction:column;gap:12px}
+.product-img{aspect-ratio:1/1;background:#fff;display:grid;place-items:center;overflow:hidden}
+.product-img img{width:100%;height:100%;object-fit:contain}
+.na{color:#6a707a;font-weight:700;letter-spacing:.1em;font-size:22px}
+.product-card h3{font-size:17px;margin:0;font-weight:600;color:#fff}
+.stock-pill{align-self:flex-start;padding:5px 12px;font-weight:700;font-size:12px;border-radius:3px;letter-spacing:.03em}
+.stock-pill.in{background:#fff;color:#0b0b0c}.stock-pill.none{background:#c8102e;color:#fff}
+.product-total{font-size:30px;font-weight:700;line-height:1}.product-total span{display:block;font-size:13px;font-weight:500;color:#9aa0aa;margin-top:6px}
+@media(max-width:800px){
+.w-nav{padding:0 16px}.w-brand{font-size:17px}
+.hero{height:auto;min-height:0;max-height:none}
+.hero::before{background:linear-gradient(180deg,#0b0b0ccc,#0b0b0cee)}
+.hero-content{padding:44px 20px 0}
+.hero-bar{position:relative;left:auto;bottom:auto;transform:none;width:100%;grid-template-columns:1fr 1fr;margin-top:40px}
+.bar-cell{padding:18px 20px}.bar-label{font-size:18px}
+.bar-action{grid-column:1/-1;padding:16px 20px}.bar-action .w-btn{width:100%}
+.catalog{padding:50px 16px 70px}
+.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+}
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="logo-mark" viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 6v36M6 24h36" stroke="currentColor" stroke-width="3" fill="none"/><path d="M10 18L18 10M10 13L13 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol></defs></svg>
+
+<div id="welcome-page">
+  <header class="w-nav">
+    <div class="w-brand"><span class="w-logo logo-slot"><svg class="mark"><use href="#logo-mark"/></svg></span><span>Danny's Glassworks</span></div>
+    <button class="w-btn" data-go="login">Login</button>
+  </header>
+
+  <section class="hero">
+    <svg class="hero-art" id="hero-art" viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#303136"/><stop offset="1" stop-color="#0b0b0c"/></linearGradient>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset=".55" stop-color="#9ea3ab"/><stop offset="1" stop-color="#3a3c42"/></linearGradient>
+        <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ea3ab"/><stop offset="1" stop-color="#26272b"/></linearGradient>
+        <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity=".6"/></linearGradient>
+        <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b0b0c" stop-opacity="0"/><stop offset="1" stop-color="#0b0b0c"/></linearGradient>
+        <pattern id="panes" width="36" height="48" patternUnits="userSpaceOnUse"><rect width="36" height="48" fill="url(#g1)"/><path d="M0 0H36M0 0V48" stroke="#0b0b0c" stroke-width="3" fill="none"/></pattern>
+        <pattern id="panes2" width="36" height="48" patternUnits="userSpaceOnUse"><rect width="36" height="48" fill="url(#g2)"/><path d="M0 0H36M0 0V48" stroke="#0b0b0c" stroke-width="3" fill="none"/></pattern>
+      </defs>
+      <rect width="1600" height="760" fill="url(#sky)"/>
+      <rect x="800" y="300" width="170" height="470" fill="url(#panes2)"/>
+      <polygon points="970,300 1020,316 1020,770 970,770" fill="url(#panes2)" opacity=".7"/>
+      <rect x="1390" y="190" width="220" height="580" fill="url(#panes2)"/>
+      <rect x="1020" y="70" width="250" height="700" fill="url(#panes)"/>
+      <rect x="1020" y="70" width="250" height="700" fill="url(#fade)"/>
+      <polygon points="1270,70 1350,100 1350,770 1270,770" fill="url(#panes2)"/>
+      <rect x="1141" y="18" width="4" height="52" fill="#cfd2d8"/>
+      <polygon points="900,0 1000,0 1500,760 1400,760" fill="#fff" opacity=".08"/>
+      <rect y="560" width="1600" height="200" fill="url(#ground)"/>
+    </svg>
+    <div class="hero-content">
+      <span class="hero-tag">SOLUCIONES EN VIDRIO</span>
+      <h1>Cotizamos tu construcción en vidrio</h1>
+      <p class="lead">Ventanas, puertas, paredes de vidrio, espejos y vitrinas para tu hogar y negocio.</p>
+      <div class="hero-actions">
+        <button class="w-btn solid" data-go="products">Ver productos</button>
+        <button class="w-btn" data-go="login">Login</button>
+      </div>
+    </div>
+    <div class="hero-bar">
+      <div class="bar-cell"><div class="bar-label">Categorías</div><div class="bar-value" id="stat-cats">9 tipos de producto</div></div>
+      <div class="bar-cell"><div class="bar-label">En existencia</div><div class="bar-value" id="stat-total">—</div></div>
+      <div class="bar-cell"><div class="bar-label">Con disponibilidad</div><div class="bar-value" id="stat-avail">—</div></div>
+      <div class="bar-action"><button class="w-btn solid" data-go="products">Ver productos</button></div>
+    </div>
+  </section>
+
+  <section id="public-catalog" class="catalog hidden">
+    <div class="catalog-inner">
+      <h2>Productos disponibles</h2>
+      <p class="catalog-sub">Existencias registradas por categoría.</p>
+      <div id="category-counts" class="product-grid"></div>
+      <p id="catalog-error" class="error hidden"></p>
+    </div>
+  </section>
+</div>
+
+<div id="login-page" class="hidden">
+  <div class="login-box">
+    <div class="login-head"><div class="logo logo-slot"><svg class="mark"><use href="#logo-mark"/></svg></div><h1 class="serif">Danny's Glassworks</h1><p>Sistema de gestión integral</p></div>
+    <form id="login-form">
+      <div class="field"><label for="username">USUARIO</label><input class="input" id="username" autocomplete="username" required maxlength="16"></div>
+      <div class="field"><label for="password">CONTRASEÑA</label><input class="input" id="password" type="password" autocomplete="current-password" required></div>
+      <p id="login-error" class="error hidden"></p>
+      <button class="btn primary" style="width:100%" type="submit" id="login-submit">Iniciar sesión</button>
+    </form>
+    <button class="btn" style="width:100%;margin-top:10px" type="button" id="login-back">Volver al inicio</button>
+  </div>
+</div>
+
+<div id="app-page" class="hidden">
+  <header class="header">
+    <div class="brand"><div class="brand-logo logo-slot"><svg class="mark"><use href="#logo-mark"/></svg></div><div><h1 class="serif">Danny's Glassworks</h1><p>Vidriería & Control de inventario</p></div></div>
+    <nav class="nav" id="nav">
+      <button class="active" data-view="inventory-view">Almacén</button>
+      <button data-view="employees-view" id="employees-tab" class="hidden">Empleados</button>
+      <button data-view="receipts-view" id="receipts-tab" class="hidden">Recibos</button>
+    </nav>
+    <div class="account"><div class="account-info"><span class="account-name" id="display-name"></span><span class="role" id="display-role"></span></div><button class="btn" id="logout-btn">Salir</button></div>
+  </header>
+
+  <main>
+    <section id="inventory-view" class="view">
+      <div class="section-head"><div><h2>Almacén y ventas</h2><p id="product-count">Productos disponibles</p></div><button id="toggle-product-form" class="btn primary admin-only hidden">+ Nuevo producto</button></div>
+      <form id="product-form" class="form-panel hidden">
+        <h3>Agregar producto al almacén</h3>
+        <div class="form-grid">
+          <div><label for="new-name">NOMBRE</label><input class="input" id="new-name" required maxlength="100"></div>
+          <div><label for="new-category">CATEGORÍA</label><select class="input" id="new-category" required><option value="Ventana simple">Ventana simple</option><option value="Vidrio para puerta">Vidrio para puerta</option><option value="Ventana corrediza horizontal">Ventana corrediza horizontal</option><option value="Ventana corrediza vertical">Ventana corrediza vertical</option><option value="Pared de vidrio">Pared de vidrio</option><option value="Puertas">Puertas</option><option value="Puertas de vidrio">Puertas de vidrio</option><option value="Espejos">Espejos</option><option value="Vitrinas">Vitrinas</option></select></div>
+          <div><label for="new-price">PRECIO</label><input class="input" id="new-price" type="number" min="0.01" step="0.01" required></div>
+          <div><label for="new-stock">STOCK INICIAL</label><input class="input" id="new-stock" type="number" min="0" step="1" required></div>
+        </div>
+        <div class="form-actions"><button class="btn primary" type="submit">Guardar producto</button><button class="btn" type="button" id="cancel-product">Cancelar</button></div>
+      </form>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="panel-head"><h3>Productos</h3><input id="product-search" class="input search" placeholder="Buscar producto..."></div>
+          <div class="table-wrap"><table><thead><tr><th>Producto</th><th class="center">Precio</th><th class="center">Stock</th><th class="center">Cantidad</th><th class="center">Acción</th></tr></thead><tbody id="products-body"></tbody></table><div id="products-empty" class="empty hidden">No hay productos que mostrar.</div></div>
+        </section>
+        <aside class="panel cart-panel">
+          <div class="panel-head"><h3>Ticket actual</h3><button class="btn" id="clear-cart">Vaciar</button></div>
+          <div class="panel-body"><p id="cart-empty" class="hint">Agrega productos del almacén para comenzar una venta.</p><div id="cart-lines"></div><div class="total-row"><span>Total</span><span id="cart-total">$0.00</span></div><div class="cart-actions"><button class="btn primary" id="finish-sale" disabled>Finalizar venta</button></div><p class="hint">El inventario se descuenta al confirmar la venta.</p></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="employees-view" class="view hidden">
+      <div class="section-head"><div><h2>Empleados</h2><p>Administración de cuentas y permisos</p></div><button class="btn primary" id="toggle-user-form">+ Nuevo empleado</button></div>
+      <form id="user-form" class="form-panel hidden">
+        <h3>Crear cuenta</h3>
+        <div class="form-grid">
+          <div><label for="emp-username">USUARIO</label><input class="input" id="emp-username" maxlength="16" required></div>
+          <div><label for="emp-password">CONTRASEÑA (MÍNIMO 8)</label><input class="input" id="emp-password" type="password" minlength="8" required></div>
+          <div><label for="emp-name">NOMBRE COMPLETO</label><input class="input" id="emp-name" required maxlength="100"></div>
+        </div>
+        <div class="form-grid" style="margin-top:12px"><div><label for="emp-email">CORREO (OPCIONAL)</label><input class="input" id="emp-email" type="email"></div><div><label for="emp-role">ROL</label><select class="input" id="emp-role"><option value="empleado">Empleado</option><option value="admin">Administrador</option></select></div></div>
+        <div class="form-actions"><button class="btn primary" type="submit">Crear cuenta</button><button class="btn" type="button" id="cancel-user">Cancelar</button></div>
+      </form>
+      <section class="panel"><div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th class="center">Acción</th></tr></thead><tbody id="users-body"></tbody></table></div></section>
+    </section>
+
+    <section id="receipts-view" class="view hidden">
+      <div class="section-head"><div><h2>Recibos</h2><p>Historial de ventas registradas</p></div><button class="btn" id="refresh-receipts">Actualizar</button></div>
+      <section class="panel"><div class="table-wrap"><table><thead><tr><th>Folio</th><th>Fecha</th><th>Usuario</th><th>Pago</th><th class="center">Total</th><th class="center">Detalle</th></tr></thead><tbody id="receipts-body"></tbody></table></div><div id="receipts-empty" class="empty hidden">Todavía no hay recibos.</div></section>
+      <div id="receipt-detail" class="panel hidden" style="margin-top:16px"><div class="panel-head"><h3 id="receipt-detail-title">Detalle del recibo</h3><button class="btn" id="close-receipt-detail">Cerrar</button></div><div class="panel-body" id="receipt-detail-body"></div></div>
+    </section>
+  </main>
+</div>
+
+<div id="sale-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="sale-title">
+  <div class="modal-box">
+    <h2 id="sale-title">Confirmar venta</h2><p class="modal-intro">Revisa los productos y elige cómo pagará el cliente.</p>
+    <div id="sale-summary"></div>
+    <div class="summary-total"><span>Total</span><span id="modal-total">$0.00</span></div>
+    <div class="field"><label for="payment-method">MÉTODO DE PAGO</label><select class="input" id="payment-method"><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option></select></div>
+    <div id="cash-fields"><div class="field"><label for="cash-received">EFECTIVO RECIBIDO</label><input class="input" id="cash-received" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="change-box"><span>Cambio</span><span id="cash-change">$0.00</span></div></div>
+    <p id="sale-error" class="error hidden"></p>
+    <div class="modal-actions"><button class="btn" id="cancel-sale">Cancelar</button><button class="btn primary" id="confirm-sale">Guardar venta</button></div>
+  </div>
+</div>
+<div id="toast" class="hidden" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+const API = ""; // El HTML y la API se sirven desde el mismo Host.py.
+const $ = id => document.getElementById(id);
+const CATEGORIAS = [
+  "Ventana simple",
+  "Vidrio para puerta",
+  "Ventana corrediza horizontal",
+  "Ventana corrediza vertical",
+  "Pared de vidrio",
+  "Puertas",
+  "Puertas de vidrio",
+  "Espejos",
+  "Vitrinas"
+];
+let catalogData=null, imageMap={};
+function unidades(c){const item=(catalogData||[]).find(x=>x.categoria===c);return Number(item?.total_unidades||0);}
+function imgUrl(key){return imageMap[key]?"imagenes/"+encodeURIComponent(imageMap[key]):null;}
+function applyBranding(){
+  const logo=imgUrl("logo");
+  if(logo) document.querySelectorAll(".logo-slot").forEach(el=>{el.innerHTML='<img class="logo-img" src="'+logo+'" alt="Logo">';});
+  const portada=imgUrl("portada");
+  if(portada){const art=$("hero-art");if(art){const img=document.createElement("img");img.className="hero-art";img.id="hero-art";img.alt="";img.src=portada;art.replaceWith(img);}}
+}
+function renderHeroStats(){
+  if(!catalogData){$("stat-total").textContent="—";$("stat-avail").textContent="—";return;}
+  const counts=CATEGORIAS.map(unidades);
+  const total=counts.reduce((a,b)=>a+b,0), avail=counts.filter(n=>n>0).length;
+  $("stat-total").textContent=total+" unidades";
+  $("stat-avail").textContent=avail+" de "+CATEGORIAS.length+" categorías";
+}
+function renderCatalog(){
+  $("category-counts").innerHTML=CATEGORIAS.map(c=>{
+    const total=unidades(c), url=imgUrl(c.toLowerCase());
+    const media=url?`<img src="${escapeHtml(url)}" alt="${escapeHtml(c)}" loading="lazy">`:`<span class="na">N/A</span>`;
+    return `<article class="product-card"><div class="product-img">${media}</div><h3>${escapeHtml(c)}</h3><span class="stock-pill ${total>0?"in":"none"}">${total>0?"DISPONIBLE":"AGOTADO"}</span><div class="product-total">${total}<span>unidades disponibles</span></div></article>`;
+  }).join("");
+}
+$("category-counts").addEventListener("error",e=>{
+  if(e.target.tagName==="IMG"){const na=document.createElement("span");na.className="na";na.textContent="N/A";e.target.replaceWith(na);}
+},true);
+async function loadWelcomeData(){
+  try{imageMap=await api("/api/imagenes");}catch(_){imageMap={};}
+  applyBranding();
+  try{catalogData=await api("/api/catalogo");}catch(_){catalogData=null;}
+  renderHeroStats();
+  if(!$("public-catalog").classList.contains("hidden")&&catalogData)renderCatalog();
+}
+async function openCatalog(){
+  const panel=$("public-catalog");
+  panel.classList.remove("hidden");
+  $("catalog-error").classList.add("hidden");
+  if(!catalogData){
+    $("category-counts").innerHTML='<p class="small">Cargando productos...</p>';
+    try{catalogData=await api("/api/catalogo");}
+    catch(_){
+      $("category-counts").innerHTML="";
+      $("catalog-error").textContent="No se pudo cargar el catálogo. Intenta de nuevo más tarde.";
+      $("catalog-error").classList.remove("hidden");return;
+    }
+    renderHeroStats();
+  }
+  renderCatalog();
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelectorAll('[data-go="products"]').forEach(b=>b.addEventListener("click",openCatalog));
+document.querySelectorAll('[data-go="login"]').forEach(b=>b.addEventListener("click",()=>{$("welcome-page").classList.add("hidden");$("login-page").classList.remove("hidden");$("username").focus();}));
+$("login-back").addEventListener("click",()=>{$("login-page").classList.add("hidden");$("welcome-page").classList.remove("hidden");});
+
+let currentUser = null;
+let products = [];
+let cart = new Map();
+let users = [];
+let toastTimer = null;
+let savingSale = false;
+
+function money(value){ return "$" + Number(value || 0).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function escapeHtml(value){ const el=document.createElement("span"); el.textContent=value==null?"":String(value); return el.innerHTML; }
+function showToast(message){ $("toast").textContent=message; $("toast").classList.remove("hidden"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>$("toast").classList.add("hidden"),3000); }
+async function api(path, options={}){
+  const opts={credentials:"same-origin",...options};
+  if(opts.body && !opts.headers) opts.headers={"Content-Type":"application/json"};
+  const response=await fetch(API+path,opts);
+  let data={}; try{data=await response.json();}catch(_){}
+  if(!response.ok) throw new Error(data.error || "Ocurrió un error.");
+  return data;
+}
+function setLoggedIn(user){
+  currentUser=user;
+  $("welcome-page").classList.add("hidden"); $("login-page").classList.add("hidden"); $("app-page").classList.remove("hidden");
+  $("display-name").textContent=user.nombre_completo || user.username;
+  $("display-role").textContent=user.rol==="admin"?"Administrador":"Empleado";
+  const admin=user.rol==="admin";
+  $("employees-tab").classList.toggle("hidden",!admin);
+  $("receipts-tab").classList.toggle("hidden",!admin);
+  document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden",!admin));
+  showView("inventory-view");
+  loadProducts();
+}
+function showLogin(){
+  currentUser=null; cart.clear(); products=[];
+  $("app-page").classList.add("hidden"); $("login-page").classList.remove("hidden");
+  $("username").value=""; $("password").value=""; $("login-error").classList.add("hidden");
+  renderCart();
+}
+function showView(viewId){
+  if((viewId==="employees-view"||viewId==="receipts-view") && (!currentUser||currentUser.rol!=="admin")) return;
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("hidden",v.id!==viewId));
+  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===viewId));
+  if(viewId==="employees-view") loadUsers();
+  if(viewId==="receipts-view") loadReceipts();
+}
+document.querySelectorAll("[data-view]").forEach(button=>button.addEventListener("click",()=>showView(button.dataset.view)));
+
+$("login-form").addEventListener("submit",async e=>{
+  e.preventDefault(); $("login-submit").disabled=true; $("login-error").classList.add("hidden");
+  try{
+    const result=await api("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("username").value.trim(),password:$("password").value})});
+    setLoggedIn(result.usuario);
+  }catch(err){$("login-error").textContent=err.message;$("login-error").classList.remove("hidden");}
+  finally{$("login-submit").disabled=false;}
+});
+$("logout-btn").addEventListener("click",async()=>{
+  try{await api("/api/logout",{method:"POST"});}catch(_){}
+  showLogin(); $("login-page").classList.add("hidden"); $("welcome-page").classList.remove("hidden");
+});
+async function restoreSession(){
+  try{const result=await api("/api/sesion");$("welcome-page").classList.add("hidden");setLoggedIn(result.usuario);}catch(_){$("app-page").classList.add("hidden");$("login-page").classList.add("hidden");$("welcome-page").classList.remove("hidden");}
+}
+
+function stockClass(stock){if(Number(stock)<=0)return "out";if(Number(stock)<20)return "low";return "ok";}
+async function loadProducts(){
+  try{products=await api("/api/inventario");renderProducts();renderCart();}
+  catch(err){showToast(err.message);if(err.message.toLowerCase().includes("sesión"))showLogin();}
+}
+function renderProducts(){
+  const filter=$("product-search").value.trim().toLowerCase();
+  const list=products.filter(p=>String(p.nombre).toLowerCase().includes(filter));
+  $("product-count").textContent=products.length+" productos registrados";
+  $("products-empty").classList.toggle("hidden",list.length>0);
+  $("products-body").innerHTML=list.map(p=>{
+    const inCart=cart.get(Number(p.id))?.cantidad||0;
+    const remaining=Number(p.cantidad)-inCart;
+    const admin=currentUser?.rol==="admin";
+    return `<tr>
+      <td><strong>${escapeHtml(p.nombre)}</strong></td>
+      <td class="center">${money(p.precio)}</td>
+      <td class="center"><span class="badge ${stockClass(remaining)}">${remaining}</span></td>
+      <td class="center"><input class="qty" type="number" min="1" max="${Math.max(1,remaining)}" value="1" aria-label="Cantidad de ${escapeHtml(p.nombre)}" data-qty="${p.id}" ${remaining<=0?"disabled":""}></td>
+      <td><div class="row-actions">
+        <button class="btn primary" data-add-cart="${p.id}" ${remaining<=0?"disabled":""}>${inCart?"Agregar más":"Agregar"}</button>
+        ${admin?`<button class="btn" data-stock="${p.id}" data-delta="1" title="Agregar una unidad al stock">+Stock</button><button class="btn danger" data-delete-product="${p.id}">Eliminar</button>`:""}
+      </div></td></tr>`;
+  }).join("");
+}
+$("product-search").addEventListener("input",renderProducts);
+$("products-body").addEventListener("click",async e=>{
+  const add=e.target.closest("[data-add-cart]");
+  const stock=e.target.closest("[data-stock]");
+  const del=e.target.closest("[data-delete-product]");
+  if(add){
+    const id=Number(add.dataset.addCart), p=products.find(x=>Number(x.id)===id);
+    const input=$(`qty-${id}`) || document.querySelector(`[data-qty="${id}"]`);
+    const qtyInput=document.querySelector(`[data-qty="${id}"]`);
+    const qty=Number(qtyInput?.value||1);
+    if(!p||!Number.isInteger(qty)||qty<1){showToast("Indica una cantidad válida.");return;}
+    const old=cart.get(id)?.cantidad||0;
+    if(old+qty>Number(p.cantidad)){showToast("No hay existencias suficientes.");return;}
+    cart.set(id,{producto_id:id,cantidad:old+qty,nombre:p.nombre,precio:Number(p.precio)});
+    renderProducts();renderCart();showToast("Producto agregado al ticket.");
+  }else if(stock){
+    try{await api(`/api/inventario/${stock.dataset.stock}/stock`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({delta:Number(stock.dataset.delta)})});await loadProducts();showToast("Inventario actualizado.");}
+    catch(err){showToast(err.message);}
+  }else if(del){
+    if(!confirm("¿Eliminar este producto del inventario?"))return;
+    try{await api(`/api/inventario/${del.dataset.deleteProduct}`,{method:"DELETE"});cart.delete(Number(del.dataset.deleteProduct));await loadProducts();showToast("Producto eliminado.");}
+    catch(err){showToast(err.message);}
+  }
+});
+$("toggle-product-form").addEventListener("click",()=>$("product-form").classList.toggle("hidden"));
+$("cancel-product").addEventListener("click",()=>$("product-form").classList.add("hidden"));
+$("product-form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const categoria=$("new-category").value,nombre=$("new-name").value.trim(),precio=Number($("new-price").value),cantidad=Number($("new-stock").value);
+  if(!nombre||!Number.isFinite(precio)||precio<=0||!Number.isInteger(cantidad)||cantidad<0){showToast("Revisa el nombre, precio y stock.");return;}
+  try{await api("/api/inventario",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nombre,categoria,precio,cantidad})});e.target.reset();e.target.classList.add("hidden");await loadProducts();showToast("Producto guardado.");}
+  catch(err){showToast(err.message);}
+});
+
+function cartTotal(){let total=0;for(const item of cart.values())total+=item.precio*item.cantidad;return Math.round((total+Number.EPSILON)*100)/100;}
+function renderCart(){
+  const lines=[...cart.values()];
+  $("cart-empty").classList.toggle("hidden",lines.length>0);
+  $("finish-sale").disabled=lines.length===0;
+  $("cart-lines").innerHTML=lines.map(item=>`<div class="cart-line"><div><div class="cart-name">${escapeHtml(item.nombre)}</div><div class="cart-sub">${item.cantidad} × ${money(item.precio)}</div></div><div class="cart-right"><strong>${money(item.cantidad*item.precio)}</strong><button class="remove" data-remove-cart="${item.producto_id}">Quitar</button></div></div>`).join("");
+  $("cart-total").textContent=money(cartTotal());
+  renderProducts();
+}
+$("cart-lines").addEventListener("click",e=>{
+  const btn=e.target.closest("[data-remove-cart]");if(!btn)return;
+  cart.delete(Number(btn.dataset.removeCart));renderCart();
+});
+$("clear-cart").addEventListener("click",()=>{if(cart.size&&!confirm("¿Vaciar el ticket actual?"))return;cart.clear();renderCart();});
+function updateCashChange(){
+  const total=cartTotal(), cash=Number($("cash-received").value);
+  const change=Math.max(0,Math.round((cash-total+Number.EPSILON)*100)/100);
+  $("cash-change").textContent=money(change);
+  const valid=Number.isFinite(cash)&&$("cash-received").value!==""&&cash>=total;
+  $("confirm-sale").disabled=savingSale||($("payment-method").value==="efectivo"&&!valid)||cart.size===0;
+}
+function renderSaleSummary(){
+  $("sale-summary").innerHTML=[...cart.values()].map(item=>`<div class="summary-line"><span>${escapeHtml(item.nombre)} × ${item.cantidad}</span><strong>${money(item.precio*item.cantidad)}</strong></div>`).join("");
+  $("modal-total").textContent=money(cartTotal());
+  $("cash-received").value="";
+  $("sale-error").classList.add("hidden");
+  updatePaymentFields();
+}
+function updatePaymentFields(){
+  const cash=$("payment-method").value==="efectivo";
+  $("cash-fields").classList.toggle("hidden",!cash);
+  updateCashChange();
+}
+$("finish-sale").addEventListener("click",()=>{
+  if(!cart.size)return;
+  renderSaleSummary();$("sale-modal").classList.remove("hidden");
+});
+$("payment-method").addEventListener("change",updatePaymentFields);
+$("cash-received").addEventListener("input",updateCashChange);
+$("cancel-sale").addEventListener("click",()=>$("sale-modal").classList.add("hidden"));
+$("sale-modal").addEventListener("click",e=>{if(e.target===$("sale-modal")&&!savingSale)$("sale-modal").classList.add("hidden");});
+$("confirm-sale").addEventListener("click",async()=>{
+  if(savingSale||!cart.size)return;
+  const metodo=$("payment-method").value,total=cartTotal(),efectivo=Number($("cash-received").value);
+  if(metodo==="efectivo"&&(!Number.isFinite(efectivo)||$("cash-received").value===""||efectivo<total)){
+    $("sale-error").textContent="El efectivo recibido debe ser igual o mayor al total.";
+    $("sale-error").classList.remove("hidden");return;
+  }
+  savingSale=true;$("confirm-sale").disabled=true;$("confirm-sale").textContent="Guardando...";
+  try{
+    const payload={productos:[...cart.values()].map(x=>({producto_id:x.producto_id,cantidad:x.cantidad})),metodo_pago:metodo,efectivo_recibido:metodo==="efectivo"?efectivo:0};
+    const result=await api("/api/ventas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    cart.clear();$("sale-modal").classList.add("hidden");renderCart();await loadProducts();
+    showToast(`Venta guardada · ${result.folio} · Total ${money(result.total)}${metodo==="efectivo"?" · Cambio "+money(result.cambio):""}`);
+  }catch(err){$("sale-error").textContent=err.message;$("sale-error").classList.remove("hidden");}
+  finally{savingSale=false;$("confirm-sale").textContent="Guardar venta";updateCashChange();}
+});
+
+async function loadUsers(){
+  if(currentUser?.rol!=="admin")return;
+  try{users=await api("/api/usuarios");renderUsers();}
+  catch(err){showToast(err.message);}
+}
+function renderUsers(){
+  $("users-body").innerHTML=users.map(u=>`<tr><td><strong>${escapeHtml(u.username)}</strong>${Number(u.id)===Number(currentUser.id)?' <span class="small">(Tú)</span>':''}</td><td>${escapeHtml(u.nombre_completo||"—")}</td><td>${u.rol==="admin"?"Administrador":"Empleado"}</td><td>${u.activo?'<span class="badge ok">Activo</span>':'<span class="badge out">Inactivo</span>'}</td><td class="center">${Number(u.id)===Number(currentUser.id)||!u.activo? "—":`<button class="btn danger" data-disable-user="${u.id}">Desactivar</button>`}</td></tr>`).join("");
+}
+$("toggle-user-form").addEventListener("click",()=>$("user-form").classList.toggle("hidden"));
+$("cancel-user").addEventListener("click",()=>$("user-form").classList.add("hidden"));
+$("user-form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const payload={username:$("emp-username").value.trim(),password:$("emp-password").value,nombre_completo:$("emp-name").value.trim(),email:$("emp-email").value.trim(),rol:$("emp-role").value};
+  if(payload.password.length<8){showToast("La contraseña debe tener al menos 8 caracteres.");return;}
+  try{await api("/api/usuarios",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});e.target.reset();e.target.classList.add("hidden");await loadUsers();showToast("Cuenta creada.");}
+  catch(err){showToast(err.message);}
+});
+$("users-body").addEventListener("click",async e=>{
+  const btn=e.target.closest("[data-disable-user]");if(!btn)return;
+  const user=users.find(u=>Number(u.id)===Number(btn.dataset.disableUser));
+  if(!confirm(`¿Desactivar la cuenta ${user?.username||""}? Se conservará su historial de ventas.`))return;
+  try{await api(`/api/usuarios/${btn.dataset.disableUser}`,{method:"DELETE"});await loadUsers();showToast("Cuenta desactivada.");}
+  catch(err){showToast(err.message);}
+});
+
+async function loadReceipts(){
+  if(currentUser?.rol!=="admin")return;
+  try{
+    const receipts=await api("/api/recibos");
+    $("receipts-empty").classList.toggle("hidden",receipts.length>0);
+    $("receipts-body").innerHTML=receipts.map(r=>`<tr><td><strong>${escapeHtml(r.folio||"—")}</strong></td><td>${escapeHtml(r.fecha_hora||"—")}</td><td>${escapeHtml(r.nombre_completo||r.username||"—")}</td><td>${escapeHtml(r.metodo_pago||"—")}</td><td class="center">${money(r.total)}</td><td class="center"><button class="btn" data-receipt-id="${r.id}">Ver</button></td></tr>`).join("");
+  }catch(err){showToast(err.message);}
+}
+$("refresh-receipts").addEventListener("click",loadReceipts);
+$("receipts-body").addEventListener("click",async e=>{
+  const btn=e.target.closest("[data-receipt-id]");if(!btn)return;
+  try{
+    const r=await api(`/api/recibos/${btn.dataset.receiptId}`);
+    $("receipt-detail-title").textContent="Recibo "+(r.folio||"");
+    const details=r.detalle||[];
+    $("receipt-detail-body").innerHTML=details.map(d=>`<div class="summary-line"><span>${escapeHtml(d.nombre||"Producto")} × ${d.cantidad}</span><strong>${money(Number(d.precio_unitario)*Number(d.cantidad))}</strong></div>`).join("")+
+      `<div class="summary-total"><span>Total</span><span>${money(r.total)}</span></div><p class="hint">Pago: ${escapeHtml(r.metodo_pago||"—")}${r.metodo_pago==="efectivo"||r.metodo_pago==="Efectivo"?` · Recibido: ${money(r.efectivo_recibido)} · Cambio: ${money(r.cambio)}`:""}</p>`;
+    $("receipt-detail").classList.remove("hidden");
+    $("receipt-detail").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(err){showToast(err.message);}
+});
+$("close-receipt-detail").addEventListener("click",()=>$("receipt-detail").classList.add("hidden"));
+
+restoreSession();
+loadWelcomeData();
+})();
+</script>
+</body>
+</html>
