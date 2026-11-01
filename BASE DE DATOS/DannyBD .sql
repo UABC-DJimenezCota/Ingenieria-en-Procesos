@@ -8,7 +8,7 @@ CREATE TABLE `usuarios` (
   `password` VARCHAR(255) NOT NULL,
   `nombre_completo` VARCHAR(100) DEFAULT NULL,
   `email` VARCHAR(255) DEFAULT NULL,
-  `rol` ENUM('admin','empleado') NOT NULL DEFAULT 'empleado',
+  `rol` ENUM('admin','empleado','cliente') NOT NULL DEFAULT 'cliente',
   `activo` BOOLEAN NOT NULL DEFAULT TRUE,
   `create_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -54,11 +54,27 @@ CREATE TABLE `recibo_detalle` (
   CONSTRAINT `recibo_detalle_ibfk_2` FOREIGN KEY (`producto_id`) REFERENCES `inventario` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE `citas` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `cliente_id` INT NOT NULL,
+  `fecha_hora` DATETIME NOT NULL,
+  `descripcion` TEXT DEFAULT NULL,
+  `estado` ENUM('pendiente','confirmada','completada','cancelada') NOT NULL DEFAULT 'pendiente',
+  `ubicacion` VARCHAR(255) DEFAULT NULL,
+  `presupuesto_estimado` DECIMAL(10,2) DEFAULT 0.00,
+  `create_time` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_cliente` (`cliente_id`),
+  CONSTRAINT `fk_citas_cliente` FOREIGN KEY (`cliente_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 -- Cuentas de ejemplo; cambia las contraseñas para el uso real.
 INSERT INTO `usuarios` (`username`, `password`, `nombre_completo`, `email`, `rol`) VALUES
 ('admin', 'admin', 'Administrador', NULL, 'admin'),
 ('juan', 'juan123', 'Juan Pérez', NULL, 'empleado'),
-('maria', 'maria123', 'María López', NULL, 'empleado');
+('maria', 'maria123', 'María López', NULL, 'empleado'),
+('cliente1', 'pass123', 'Carlos Slim', 'carlos@mail.com', 'cliente'),
+('cliente2', 'pass456', 'Ana García', 'ana@mail.com', 'cliente');
 
 -- Inventario de ejemplo con categorías para el catálogo de bienvenida.
 INSERT INTO `inventario` (`nombre`, `categoria`, `precio`, `cantidad`) VALUES
@@ -79,10 +95,16 @@ INSERT INTO `recibo_detalle` (`recibo_id`, `producto_id`, `cantidad`, `precio_un
 (1, 1, 1, 650.00),
 (2, 2, 1, 850.00);
 
+-- Citas de ejemplo
+INSERT INTO `citas` (`cliente_id`, `fecha_hora`, `descripcion`, `estado`, `presupuesto_estimado`) VALUES
+(4, '2024-10-25 10:00:00', 'Cotización para cancel de baño en vidrio templado', 'pendiente', 4500.00),
+(5, '2024-10-26 15:30:00', 'Medición de ventanal principal en fachada', 'confirmada', 12000.00);
+
 SELECT * FROM `usuarios`;
 SELECT * FROM `inventario`;
 SELECT * FROM `recibos`;
 SELECT * FROM `recibo_detalle`;
+SELECT * FROM `citas`;
 
 SELECT
     r.folio, r.fecha_hora, u.nombre_completo AS atendido_por,

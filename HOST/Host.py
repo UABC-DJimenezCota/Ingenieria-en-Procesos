@@ -247,6 +247,38 @@ def logout():
     return jsonify({"ok": True})
 
 
+@app.route("/api/registro", methods=["POST"])
+def registro():
+    """Permite a los nuevos clientes crear su propia cuenta."""
+    data = request.get_json(silent=True) or {}
+    username = (data.get("username") or "").strip()
+    password = data.get("password") or ""
+    nombre = (data.get("nombre_completo") or "").strip()
+    email = (data.get("email") or "").strip() or None
+
+    if not username or not password or not nombre:
+        return error("Usuario, contraseña y nombre son obligatorios.")
+    if len(password) < 8:
+        return error("La contraseña debe tener al menos 8 caracteres.")
+
+    conn = conectar()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO usuarios (username, password, nombre_completo, email, rol) VALUES (%s, %s, %s, %s, 'cliente')",
+                (username, generate_password_hash(password), nombre, email),
+            )
+        conn.commit()
+    except pymysql.err.IntegrityError as exc:
+        conn.rollback()
+        if exc.args and exc.args[0] == 1062:
+            return error("El nombre de usuario ya está en uso.", 409)
+        raise
+    finally:
+        conn.close()
+    return jsonify({"ok": True}), 201
+
+
 # ------------------------------------------------------------------ catálogo
 @app.route("/api/catalogo", methods=["GET"])
 def catalogo():

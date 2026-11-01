@@ -143,7 +143,27 @@ img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
       <p id="login-error" class="error hidden"></p>
       <button class="btn primary" style="width:100%" type="submit" id="login-submit">Iniciar sesión</button>
     </form>
+    <div style="text-align:center;margin-top:15px;font-size:13px;color:var(--muted)">
+      ¿No tienes cuenta? <a href="#" id="mostrar-registro" style="color:var(--ink);font-weight:600">Crea una cuenta</a>
+    </div>
     <button class="btn" style="width:100%;margin-top:10px" type="button" id="login-back">Volver al inicio</button>
+  </div>
+</div>
+
+<div id="registro-page" class="hidden">
+  <div class="login-box">
+    <div class="login-head"><div class="logo logo-slot"><svg class="mark"><use href="#logo-mark"/></svg></div><h1 class="serif">Danny's Glassworks</h1><p>Creación de cuenta de cliente</p></div>
+    <form id="registro-form">
+      <div class="field"><label for="reg-username">USUARIO</label><input class="input" id="reg-username" autocomplete="username" required maxlength="16"></div>
+      <div class="field"><label for="reg-password">CONTRASEÑA (MÍNIMO 8)</label><input class="input" id="reg-password" type="password" autocomplete="new-password" required minlength="8"></div>
+      <div class="field"><label for="reg-name">NOMBRE COMPLETO</label><input class="input" id="reg-name" required maxlength="100"></div>
+      <div class="field"><label for="reg-email">CORREO (OPCIONAL)</label><input class="input" id="reg-email" type="email"></div>
+      <p id="registro-error" class="error hidden"></p>
+      <button class="btn primary" style="width:100%" type="submit" id="registro-submit">Crearme cuenta</button>
+    </form>
+    <button class="btn" style="width:100%;margin-top:10px" type="button" id="registro-back">Volver al inicio</button>
+  </div>
+</div>
   </div>
 </div>
 
@@ -154,6 +174,7 @@ img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
       <button class="active" data-view="inventory-view">Almacén</button>
       <button data-view="employees-view" id="employees-tab" class="hidden">Empleados</button>
       <button data-view="receipts-view" id="receipts-tab" class="hidden">Recibos</button>
+      <button data-view="citas-view" id="citas-tab">Citas</button>
     </nav>
     <div class="account"><div class="account-info"><span class="account-name" id="display-name"></span><span class="role" id="display-role"></span></div><button class="btn" id="logout-btn">Salir</button></div>
   </header>
