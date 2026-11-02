@@ -1,34 +1,52 @@
 """
-Aplicación de escritorio para abrir la interfaz de Danny's Glassworks.
-Lee la dirección IP guardada por Host.py y abre el navegador.
+Aplicación de escritorio para Danny's Glassworks.
+Ejecuta el servidor Host.py en segundo plano, espera unos segundos y abre la interfaz en el navegador.
 """
-import os
+import subprocess
 import sys
 import time
 import webbrowser
 from pathlib import Path
 
-# Ruta a la carpeta del proyecto (padre de APLICACION y HOST)
 BASE_DIR = Path(__file__).resolve().parent.parent
+HOST_FILE = BASE_DIR / "HOST" / "Host.py"
 ADDRESS_FILE = BASE_DIR / "direccion_ip.txt"
 
 def main():
-    # Esperar a que el archivo de dirección exista (por si el servidor se inicia justo después)
-    for _ in range(30):
+    # Iniciar Host.py en un proceso separado
+    print("Iniciando el servidor Host.py...")
+    if not HOST_FILE.exists():
+        print(f"No se encontró el archivo del servidor en: {HOST_FILE}")
+        sys.exit(1)
+
+    # Lanzar el servidor usando el intérprete de python actual
+    servidor_proceso = subprocess.Popen([sys.executable, str(HOST_FILE)])
+
+    # Esperar 3 segundos para que el servidor arranque y genere la IP
+    print("Esperando a que el servidor inicie...")
+    time.sleep(3)
+
+    # Intentar leer la IP desde el archivo generado por Host.py
+    url = ""
+    for _ in range(10):
         if ADDRESS_FILE.exists():
-            break
+            contenido = ADDRESS_FILE.read_text(encoding="utf-8").strip()
+            if contenido:
+                url = contenido.splitlines()[0].strip()
+                break
         time.sleep(1)
-    else:
-        print("No se encontró el archivo de dirección IP. Asegúrate de haber ejecutado Host.py.")
-        sys.exit(1)
 
-    url = ADDRESS_FILE.read_text(encoding="utf-8").strip()
+    # Si no se leyó del archivo, usar por defecto http://127.0.0.1:8000
     if not url:
-        print("La dirección IP está vacía.")
-        sys.exit(1)
-
+        url = "http://127.0.0.1:8000"
     print(f"Abriendo {url} en el navegador...")
     webbrowser.open(url)
+
+    try:
+        # Mantener el script corriendo mientras el servidor esté activo
+        servidor_proceso.wait()
+    except KeyboardInterrupt:
+        servidor_proceso.terminate()
 
 if __name__ == "__main__":
     main()
