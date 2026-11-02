@@ -23,9 +23,9 @@ from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 
 BASE_DIR = Path(__file__).resolve().parent
-HTML_FILE = BASE_DIR / "interfaz" / "danny_s_glassworks.html"
-ADDRESS_FILE = BASE_DIR / "direccion_ip.txt"
-IMAGES_DIR = BASE_DIR / "imagenes"
+HTML_FILE = BASE_DIR.parent / "INTERFAZ" / "danny_s_glassworks.html"
+ADDRESS_FILE = BASE_DIR.parent / "direccion_ip.txt"
+IMAGES_DIR = BASE_DIR.parent / "RECURSOS"
 EXTENSIONES_IMAGEN = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".svg"}
 PORT = 8000
 
