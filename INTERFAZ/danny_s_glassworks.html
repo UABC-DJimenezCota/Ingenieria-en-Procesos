@@ -74,6 +74,7 @@ img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
 .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 }
 
+textarea.input{resize:vertical;min-height:76px;font-family:inherit}.cita-desc{max-width:280px;white-space:pre-wrap;word-break:break-word}select.input.compact{padding:7px 8px;min-width:130px}
 </style>
 </head>
 <body>
@@ -164,20 +165,19 @@ img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
     <button class="btn" style="width:100%;margin-top:10px" type="button" id="registro-back">Volver al inicio</button>
   </div>
 </div>
-  </div>
-</div>
 
 <div id="app-page" class="hidden">
   <header class="header">
     <div class="brand"><div class="brand-logo logo-slot"><svg class="mark"><use href="#logo-mark"/></svg></div><div><h1 class="serif">Danny's Glassworks</h1><p>Vidriería & Control de inventario</p></div></div>
     <nav class="nav" id="nav">
-      <button class="active" data-view="inventory-view">Almacén</button>
-      <button data-view="employees-view" id="employees-tab" class="hidden">Empleados</button>
+      <button class="active" data-view="inventory-view" id="inventory-tab">Almacén</button>
+      <button data-view="employees-view" id="employees-tab" class="hidden">Usuarios</button>
       <button data-view="receipts-view" id="receipts-tab" class="hidden">Recibos</button>
       <button data-view="citas-view" id="citas-tab">Citas</button>
     </nav>
     <div class="account"><div class="account-info"><span class="account-name" id="display-name"></span><span class="role" id="display-role"></span></div><button class="btn" id="logout-btn">Salir</button></div>
   </header>
+  <div id="server-warning" class="error hidden" style="padding:10px 22px;text-align:center;font-weight:600"></div>
 
   <main>
     <section id="inventory-view" class="view">
@@ -206,7 +206,7 @@ img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
     </section>
 
     <section id="employees-view" class="view hidden">
-      <div class="section-head"><div><h2>Empleados</h2><p>Administración de cuentas y permisos</p></div><button class="btn primary" id="toggle-user-form">+ Nuevo empleado</button></div>
+      <div class="section-head"><div><h2>Usuarios</h2><p>Administradores, empleados y clientes registrados</p></div><button class="btn primary" id="toggle-user-form">+ Nuevo empleado</button></div>
       <form id="user-form" class="form-panel hidden">
         <h3>Crear cuenta</h3>
         <div class="form-grid">
@@ -225,7 +225,31 @@ img.hero-art{filter:grayscale(1) contrast(1.05) brightness(.8)}
       <section class="panel"><div class="table-wrap"><table><thead><tr><th>Folio</th><th>Fecha</th><th>Usuario</th><th>Pago</th><th class="center">Total</th><th class="center">Detalle</th></tr></thead><tbody id="receipts-body"></tbody></table></div><div id="receipts-empty" class="empty hidden">Todavía no hay recibos.</div></section>
       <div id="receipt-detail" class="panel hidden" style="margin-top:16px"><div class="panel-head"><h3 id="receipt-detail-title">Detalle del recibo</h3><button class="btn" id="close-receipt-detail">Cerrar</button></div><div class="panel-body" id="receipt-detail-body"></div></div>
     </section>
+    <section id="citas-view" class="view hidden">
+      <div class="section-head"><div><h2>Citas</h2><p id="citas-sub">Solicitudes de cotización y medición</p></div><button class="btn primary" id="toggle-cita-form">+ Nueva cita</button></div>
+      <form id="cita-form" class="form-panel hidden">
+        <h3 id="cita-form-title">Solicitar una cita</h3>
+        <div id="cita-cliente-wrap" class="hidden" style="margin-bottom:12px"><label for="cita-cliente">CLIENTE</label><select class="input" id="cita-cliente"></select></div>
+        <div class="form-grid">
+          <div><label for="cita-fecha">FECHA Y HORA</label><input class="input" id="cita-fecha" type="datetime-local" required></div>
+          <div><label for="cita-ubicacion">UBICACIÓN (OPCIONAL)</label><input class="input" id="cita-ubicacion" maxlength="255" placeholder="Dirección donde se realizará el trabajo"></div>
+        </div>
+        <div style="margin-top:12px"><label for="cita-descripcion">DESCRIPCIÓN</label><textarea class="input" id="cita-descripcion" required placeholder="Describe lo que necesitas (cancel de baño, ventanal, espejo...)"></textarea></div>
+        <p id="cita-error" class="error hidden"></p>
+        <div class="form-actions"><button class="btn primary" type="submit" id="cita-submit">Solicitar cita</button><button class="btn" type="button" id="cancel-cita">Cancelar</button></div>
+      </form>
+      <section class="panel"><div class="table-wrap"><table><thead id="citas-head"></thead><tbody id="citas-body"></tbody></table></div><div id="citas-empty" class="empty hidden">Todavía no hay citas.</div></section>
+    </section>
   </main>
+</div>
+
+<div id="password-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="password-title">
+  <div class="modal-box">
+    <h2 id="password-title">Cambiar contraseña</h2><p class="modal-intro" id="password-intro"></p>
+    <div class="field"><label for="new-password">NUEVA CONTRASEÑA (MÍNIMO 8)</label><input class="input" id="new-password" type="password" minlength="8" autocomplete="new-password"></div>
+    <p id="password-error" class="error hidden"></p>
+    <div class="modal-actions"><button class="btn" type="button" id="cancel-password">Cancelar</button><button class="btn primary" type="button" id="confirm-password">Guardar contraseña</button></div>
+  </div>
 </div>
 
 <div id="sale-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="sale-title">
@@ -310,6 +334,8 @@ async function openCatalog(){
 document.querySelectorAll('[data-go="products"]').forEach(b=>b.addEventListener("click",openCatalog));
 document.querySelectorAll('[data-go="login"]').forEach(b=>b.addEventListener("click",()=>{$("welcome-page").classList.add("hidden");$("login-page").classList.remove("hidden");$("username").focus();}));
 $("login-back").addEventListener("click",()=>{$("login-page").classList.add("hidden");$("welcome-page").classList.remove("hidden");});
+$("mostrar-registro").addEventListener("click",e=>{e.preventDefault();$("login-page").classList.add("hidden");$("registro-page").classList.remove("hidden");$("registro-error").classList.add("hidden");$("reg-username").focus();});
+$("registro-back").addEventListener("click",()=>{$("registro-page").classList.add("hidden");$("welcome-page").classList.remove("hidden");});
 
 let currentUser = null;
 let products = [];
@@ -326,36 +352,69 @@ async function api(path, options={}){
   if(opts.body && !opts.headers) opts.headers={"Content-Type":"application/json"};
   const response=await fetch(API+path,opts);
   let data={}; try{data=await response.json();}catch(_){}
-  if(!response.ok) throw new Error(data.error || "Ocurrió un error.");
+  if(!response.ok){
+    if(data.error) throw new Error(data.error);
+    if(response.status===404||response.status===405) throw new Error("El servidor no reconoce esta función ("+response.status+"). Reconstruye Host.exe con el Host.py nuevo y reinícialo.");
+    throw new Error("El servidor respondió con un error ("+response.status+").");
+  }
   return data;
 }
+async function comprobarServidor(){
+  const aviso=$("server-warning");
+  try{await api("/api/version");aviso.classList.add("hidden");}
+  catch(_){
+    aviso.textContent="⚠ El servidor está desactualizado: faltan funciones como citas y cambio de contraseña. Reconstruye Host.exe con el Host.py nuevo y reinícialo.";
+    aviso.classList.remove("hidden");
+  }
+}
+function rolTexto(rol){return rol==="admin"?"Administrador":rol==="cliente"?"Cliente":"Empleado";}
 function setLoggedIn(user){
   currentUser=user;
   $("welcome-page").classList.add("hidden"); $("login-page").classList.add("hidden"); $("app-page").classList.remove("hidden");
   $("display-name").textContent=user.nombre_completo || user.username;
-  $("display-role").textContent=user.rol==="admin"?"Administrador":"Empleado";
-  const admin=user.rol==="admin";
+  $("display-role").textContent=rolTexto(user.rol);
+  const admin=user.rol==="admin", cliente=user.rol==="cliente";
   $("employees-tab").classList.toggle("hidden",!admin);
   $("receipts-tab").classList.toggle("hidden",!admin);
+  $("inventory-tab").classList.toggle("hidden",cliente);
   document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden",!admin));
-  showView("inventory-view");
-  loadProducts();
+  // Evita que un formulario abierto por otra sesión conserve el selector de cliente.
+  $("cita-form").classList.add("hidden"); $("cita-cliente-wrap").classList.add("hidden");
+  comprobarServidor();
+  if(cliente){showView("citas-view");}
+  else{showView("inventory-view");loadProducts();}
 }
 function showLogin(){
   currentUser=null; cart.clear(); products=[];
-  $("app-page").classList.add("hidden"); $("login-page").classList.remove("hidden");
+  $("app-page").classList.add("hidden"); $("login-page").classList.remove("hidden"); $("registro-page").classList.add("hidden");
+  $("citas-body").innerHTML=""; citas=[];
   $("username").value=""; $("password").value=""; $("login-error").classList.add("hidden");
   renderCart();
 }
 function showView(viewId){
   if((viewId==="employees-view"||viewId==="receipts-view") && (!currentUser||currentUser.rol!=="admin")) return;
+  if(viewId==="inventory-view" && (!currentUser||currentUser.rol==="cliente")) return;
+  if(viewId==="citas-view" && !currentUser) return;
   document.querySelectorAll(".view").forEach(v=>v.classList.toggle("hidden",v.id!==viewId));
   document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===viewId));
   if(viewId==="employees-view") loadUsers();
   if(viewId==="receipts-view") loadReceipts();
+  if(viewId==="citas-view") loadCitas();
 }
 document.querySelectorAll("[data-view]").forEach(button=>button.addEventListener("click",()=>showView(button.dataset.view)));
 
+$("registro-form").addEventListener("submit",async e=>{
+  e.preventDefault(); $("registro-submit").disabled=true; $("registro-error").classList.add("hidden");
+  const username=$("reg-username").value.trim(), password=$("reg-password").value;
+  const payload={username,password,nombre_completo:$("reg-name").value.trim(),email:$("reg-email").value.trim()};
+  try{
+    if(password.length<8)throw new Error("La contraseña debe tener al menos 8 caracteres.");
+    await api("/api/registro",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const result=await api("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+    e.target.reset(); $("registro-page").classList.add("hidden"); setLoggedIn(result.usuario); showToast("Cuenta creada. ¡Bienvenido!");
+  }catch(err){$("registro-error").textContent=err.message;$("registro-error").classList.remove("hidden");}
+  finally{$("registro-submit").disabled=false;}
+});
 $("login-form").addEventListener("submit",async e=>{
   e.preventDefault(); $("login-submit").disabled=true; $("login-error").classList.add("hidden");
   try{
@@ -495,7 +554,11 @@ async function loadUsers(){
   catch(err){showToast(err.message);}
 }
 function renderUsers(){
-  $("users-body").innerHTML=users.map(u=>`<tr><td><strong>${escapeHtml(u.username)}</strong>${Number(u.id)===Number(currentUser.id)?' <span class="small">(Tú)</span>':''}</td><td>${escapeHtml(u.nombre_completo||"—")}</td><td>${u.rol==="admin"?"Administrador":"Empleado"}</td><td>${u.activo?'<span class="badge ok">Activo</span>':'<span class="badge out">Inactivo</span>'}</td><td class="center">${Number(u.id)===Number(currentUser.id)||!u.activo? "—":`<button class="btn danger" data-disable-user="${u.id}">Desactivar</button>`}</td></tr>`).join("");
+  $("users-body").innerHTML=users.map(u=>{
+    const yo=Number(u.id)===Number(currentUser.id);
+    const desactivar=(yo||!u.activo)?"":`<button class="btn danger" data-disable-user="${u.id}">Desactivar</button>`;
+    return `<tr><td><strong>${escapeHtml(u.username)}</strong>${yo?' <span class="small">(Tú)</span>':''}</td><td>${escapeHtml(u.nombre_completo||"—")}${u.email?`<div class="small">${escapeHtml(u.email)}</div>`:""}</td><td>${rolTexto(u.rol)}</td><td>${u.activo?'<span class="badge ok">Activo</span>':'<span class="badge out">Inactivo</span>'}</td><td class="center"><div class="row-actions"><button class="btn" data-pass-user="${u.id}">Contraseña</button>${desactivar}</div></td></tr>`;
+  }).join("");
 }
 $("toggle-user-form").addEventListener("click",()=>$("user-form").classList.toggle("hidden"));
 $("cancel-user").addEventListener("click",()=>$("user-form").classList.add("hidden"));
@@ -506,7 +569,27 @@ $("user-form").addEventListener("submit",async e=>{
   try{await api("/api/usuarios",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});e.target.reset();e.target.classList.add("hidden");await loadUsers();showToast("Cuenta creada.");}
   catch(err){showToast(err.message);}
 });
+let passwordUserId=null;
+function cerrarPassword(){$("password-modal").classList.add("hidden");$("new-password").value="";$("password-error").classList.add("hidden");passwordUserId=null;}
+$("cancel-password").addEventListener("click",cerrarPassword);
+$("confirm-password").addEventListener("click",async()=>{
+  const nueva=$("new-password").value;
+  if(nueva.length<8){$("password-error").textContent="La contraseña debe tener al menos 8 caracteres.";$("password-error").classList.remove("hidden");return;}
+  $("confirm-password").disabled=true;
+  try{
+    await api(`/api/usuarios/${passwordUserId}/password`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({nueva_password:nueva})});
+    cerrarPassword(); showToast("Contraseña actualizada.");
+  }catch(err){$("password-error").textContent=err.message;$("password-error").classList.remove("hidden");}
+  finally{$("confirm-password").disabled=false;}
+});
 $("users-body").addEventListener("click",async e=>{
+  const pass=e.target.closest("[data-pass-user]");
+  if(pass){
+    const u=users.find(x=>Number(x.id)===Number(pass.dataset.passUser));
+    passwordUserId=Number(pass.dataset.passUser);
+    $("password-intro").textContent="Nueva contraseña para "+(u?.username||"el usuario")+".";
+    $("password-modal").classList.remove("hidden"); $("new-password").focus(); return;
+  }
   const btn=e.target.closest("[data-disable-user]");if(!btn)return;
   const user=users.find(u=>Number(u.id)===Number(btn.dataset.disableUser));
   if(!confirm(`¿Desactivar la cuenta ${user?.username||""}? Se conservará su historial de ventas.`))return;
@@ -536,6 +619,85 @@ $("receipts-body").addEventListener("click",async e=>{
   }catch(err){showToast(err.message);}
 });
 $("close-receipt-detail").addEventListener("click",()=>$("receipt-detail").classList.add("hidden"));
+
+/* ------------------------------------------------------------------ citas */
+const ESTADOS=["pendiente","confirmada","completada","cancelada"];
+const ESTADO_TXT={pendiente:"Pendiente",confirmada:"Confirmada",completada:"Completada",cancelada:"Cancelada"};
+const ESTADO_CLASE={pendiente:"low",confirmada:"ok",completada:"ok",cancelada:"out"};
+let citas=[];
+function esPersonal(){return !!currentUser&&(currentUser.rol==="admin"||currentUser.rol==="empleado");}
+function fechaCorta(v){return v?String(v).slice(0,16):"—";}
+function ahoraLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
+async function loadCitas(){
+  if(!currentUser)return;
+  $("citas-sub").textContent=esPersonal()?"Todas las citas de los clientes":"Tus solicitudes de cotización y medición";
+  try{citas=await api("/api/citas");renderCitas();}
+  catch(err){showToast(err.message);}
+}
+function renderCitas(){
+  const personal=esPersonal();
+  $("citas-head").innerHTML=personal
+    ?"<tr><th>Cliente</th><th>Fecha</th><th>Descripción</th><th>Ubicación</th><th class=\"center\">Presupuesto</th><th>Estado</th><th class=\"center\">Acción</th></tr>"
+    :"<tr><th>Fecha</th><th>Descripción</th><th>Ubicación</th><th class=\"center\">Presupuesto</th><th>Estado</th></tr>";
+  $("citas-empty").classList.toggle("hidden",citas.length>0);
+  $("citas-body").innerHTML=citas.map(c=>{
+    const desc=`<td class="cita-desc">${escapeHtml(c.descripcion||"—")}</td>`;
+    const ubic=`<td>${escapeHtml(c.ubicacion||"—")}</td>`;
+    if(personal){
+      const opciones=ESTADOS.map(x=>`<option value="${x}" ${x===c.estado?"selected":""}>${ESTADO_TXT[x]}</option>`).join("");
+      return `<tr><td><strong>${escapeHtml(c.nombre_completo||c.username||"—")}</strong>${c.email?`<div class="small">${escapeHtml(c.email)}</div>`:""}</td><td>${escapeHtml(fechaCorta(c.fecha_hora))}</td>${desc}${ubic}<td class="center"><input class="qty" style="width:110px" type="number" min="0" step="0.01" value="${Number(c.presupuesto_estimado||0)}" aria-label="Presupuesto estimado"></td><td><select class="input compact" aria-label="Estado de la cita">${opciones}</select></td><td class="center"><button class="btn primary" data-save-cita="${c.id}">Guardar</button></td></tr>`;
+    }
+    const pres=Number(c.presupuesto_estimado||0);
+    return `<tr><td>${escapeHtml(fechaCorta(c.fecha_hora))}</td>${desc}${ubic}<td class="center">${pres>0?money(pres):"Por definir"}</td><td><span class="badge ${ESTADO_CLASE[c.estado]||"low"}">${escapeHtml(ESTADO_TXT[c.estado]||c.estado)}</span></td></tr>`;
+  }).join("");
+}
+async function prepararFormCita(){
+  const personal=esPersonal();
+  $("cita-cliente-wrap").classList.toggle("hidden",!personal);
+  $("cita-cliente").required=personal;
+  $("cita-form-title").textContent=personal?"Agendar una cita para un cliente":"Solicitar una cita";
+  $("cita-submit").textContent=personal?"Agendar cita":"Solicitar cita";
+  if(!personal)return;
+  try{
+    const clientes=await api("/api/clientes");
+    $("cita-cliente").innerHTML=clientes.length
+      ?'<option value="">Selecciona un cliente...</option>'+clientes.map(c=>`<option value="${c.id}">${escapeHtml(c.nombre_completo||c.username)} (${escapeHtml(c.username)})</option>`).join("")
+      :'<option value="">No hay clientes registrados</option>';
+  }catch(err){
+    $("cita-cliente").innerHTML='<option value="">No se pudieron cargar los clientes</option>';
+    showToast(err.message);
+  }
+}
+$("toggle-cita-form").addEventListener("click",async()=>{
+  $("cita-fecha").min=ahoraLocal();
+  const abrir=$("cita-form").classList.contains("hidden");
+  $("cita-form").classList.toggle("hidden",!abrir);
+  if(abrir)await prepararFormCita();
+});
+$("cancel-cita").addEventListener("click",()=>{$("cita-form").reset();$("cita-form").classList.add("hidden");$("cita-error").classList.add("hidden");});
+$("cita-form").addEventListener("submit",async e=>{
+  e.preventDefault(); $("cita-submit").disabled=true; $("cita-error").classList.add("hidden");
+  const payload={fecha_hora:$("cita-fecha").value,descripcion:$("cita-descripcion").value.trim(),ubicacion:$("cita-ubicacion").value.trim()};
+  if(esPersonal())payload.cliente_id=Number($("cita-cliente").value);
+  try{
+    await api("/api/citas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    e.target.reset(); e.target.classList.add("hidden"); await loadCitas(); showToast(esPersonal()?"Cita agendada.":"Cita solicitada. Te contactaremos para confirmarla.");
+  }catch(err){$("cita-error").textContent=err.message;$("cita-error").classList.remove("hidden");}
+  finally{$("cita-submit").disabled=false;}
+});
+$("citas-body").addEventListener("click",async e=>{
+  const btn=e.target.closest("[data-save-cita]");if(!btn)return;
+  const fila=btn.closest("tr");
+  const payload={estado:fila.querySelector("select").value};
+  const presupuesto=fila.querySelector("input").value;
+  if(presupuesto!=="")payload.presupuesto_estimado=Number(presupuesto);
+  btn.disabled=true;
+  try{
+    await api(`/api/citas/${btn.dataset.saveCita}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    await loadCitas(); showToast("Cita actualizada.");
+  }catch(err){showToast(err.message);}
+  finally{btn.disabled=false;}
+});
 
 restoreSession();
 loadWelcomeData();

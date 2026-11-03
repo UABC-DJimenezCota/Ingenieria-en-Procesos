@@ -1,6 +1,6 @@
 """
 Aplicación de escritorio para Danny's Glassworks.
-Ejecuta el servidor Host.py en segundo plano, espera la IP y abre la interfaz en una ventana de pywebview.
+Ejecuta el servidor Host.exe en segundo plano, espera la IP y abre la interfaz en una ventana de pywebview.
 """
 import subprocess
 import sys
@@ -15,19 +15,26 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "pywebview"])
     import webview
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-HOST_FILE = BASE_DIR / "HOST" / "Host.py"
+# Detección de entorno (compilado vs script) para establecer el directorio base
+if getattr(sys, 'frozen', False):
+    # Si se ejecuta como APPPY.exe
+    BASE_DIR = Path(sys.executable).resolve().parent.parent
+else:
+    # Si se ejecuta como APPPY.PYW
+    BASE_DIR = Path(__file__).resolve().parent.parent
+
+HOST_FILE = BASE_DIR / "HOST" / "Host.exe"
 ADDRESS_FILE = BASE_DIR / "direccion_ip.txt"
 
 def main():
-    # Iniciar Host.py en un proceso separado
-    print("Iniciando el servidor Host.py...")
+    # Iniciar el ejecutable Host.exe en un proceso separado
+    print("Iniciando el servidor Host...")
     if not HOST_FILE.exists():
-        print(f"No se encontró el archivo del servidor en: {HOST_FILE}")
+        print(f"No se encontró el ejecutable del servidor en: {HOST_FILE}")
         sys.exit(1)
 
-    # Lanzar el servidor usando el intérprete de python actual
-    servidor_proceso = subprocess.Popen([sys.executable, str(HOST_FILE)])
+    # Lanzar el servidor directamente como ejecutable (sin sys.executable)
+    servidor_proceso = subprocess.Popen([str(HOST_FILE)])
 
     # Esperar a que el servidor arranque y genere la IP
     print("Esperando a que el servidor inicie...")
@@ -51,7 +58,7 @@ def main():
         window = webview.create_window("Danny's Glassworks", url, width=1200, height=800, min_size=(800, 600))
         webview.start()
     finally:
-        # Al cerrar la ventana, terminar el proceso del servidor Flask
+        # Al cerrar la ventana, terminar el proceso del servidor
         print("Cerrando el servidor...")
         servidor_proceso.terminate()
         servidor_proceso.wait()

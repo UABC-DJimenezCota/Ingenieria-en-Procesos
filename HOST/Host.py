@@ -1,7 +1,8 @@
 """
 Servidor Flask para Danny's Glassworks.
 Requiere: pip install flask flask-cors pymysql
-Variables opcionales: DB_HOST, DB_USER, DB_PASSWORD, FLASK_SECRET_KEY
+Variables opcionales: DB_HOST, DB_USER, DB_PASSWORD, FLASK_SECRET_KEY,
+SESSION_COOKIE_SECURE y CORS_ALLOWED_ORIGINS
 """
 
 from datetime import datetime
@@ -10,6 +11,7 @@ from functools import wraps
 from pathlib import Path
 import ipaddress
 import os
+import sys
 import secrets
 import socket
 import threading
@@ -20,14 +22,25 @@ import webbrowser
 import pymysql
 from flask import Flask, g, jsonify, request, send_from_directory, session
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 from werkzeug.security import check_password_hash, generate_password_hash
 
-BASE_DIR = Path(__file__).resolve().parent
+# Detección de entorno para rutas relativas estables
+if getattr(sys, 'frozen', False):
+    # Si se ejecuta como Host.exe
+    BASE_DIR = Path(sys.executable).resolve().parent
+else:
+    # Si se ejecuta como Host.py
+    BASE_DIR = Path(__file__).resolve().parent
+    
 HTML_FILE = BASE_DIR.parent / "INTERFAZ" / "danny_s_glassworks.html"
 ADDRESS_FILE = BASE_DIR.parent / "direccion_ip.txt"
 IMAGES_DIR = BASE_DIR.parent / "RECURSOS"
 EXTENSIONES_IMAGEN = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".svg"}
 PORT = 8000
+VERSION = "2026.11.2"  # sube al cambiar rutas; la interfaz la usa para detectar un Host.exe viejo
+MSG_SIN_PERMISOS = "No tienes permisos para esta acción."
+ESTADOS_CITA = ("pendiente", "confirmada", "completada", "cancelada")
 
 CATEGORIAS = [
     "Ventana simple",
@@ -56,10 +69,31 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    # Activa SESSION_COOKIE_SECURE=True cuando uses HTTPS.
-    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SECURE=os.getenv("SESSION_COOKIE_SECURE", "").lower() in ("1", "true", "yes"),
 )
-CORS(app, supports_credentials=True)
+cors_origins = [
+    origen.strip()
+    for origen in os.getenv(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:8000,http://127.0.0.1:8000",
+    ).split(",")
+    if origen.strip()
+]
+CORS(app, resources={r"/api/*": {"origins": cors_origins}}, supports_credentials=True)
+
+
+@app.errorhandler(Exception)
+def manejar_excepcion(exc):
+    """Toda falla de /api/* responde en JSON (la interfaz lee siempre el campo 'error')."""
+    es_api = request.path.startswith("/api/")
+    if isinstance(exc, HTTPException):
+        if es_api:
+            return jsonify({"ok": False, "error": exc.description or exc.name}), exc.code or 500
+        return exc
+    traceback.print_exc()
+    if es_api:
+        return jsonify({"ok": False, "error": "Error interno del servidor."}), 500
+    return "Error interno del servidor.", 500
 
 
 # ---------------------------------------------------------------- utilidades
@@ -105,7 +139,13 @@ def usuario_actual():
         conn.close()
 
 
-def requiere(admin=False):
+def requiere(admin=False, personal=False):
+    """
+    admin=True    -> solo rol 'admin'.
+    personal=True -> solo 'empleado' o 'admin' (rechaza a los clientes).
+    Sin argumentos -> cualquier usuario con sesión iniciada.
+    """
+
     def decorador(funcion):
         @wraps(funcion)
         def envoltura(*args, **kwargs):
@@ -113,8 +153,12 @@ def requiere(admin=False):
             if usuario is None:
                 session.clear()
                 return error("Sesión no iniciada.", 401)
+            if usuario["rol"] == "cliente" and (admin or personal):
+                return error(MSG_SIN_PERMISOS, 403)
             if admin and usuario["rol"] != "admin":
-                return error("No tienes permiso para esta acción.", 403)
+                return error(MSG_SIN_PERMISOS, 403)
+            if personal and usuario["rol"] not in ("empleado", "admin"):
+                return error(MSG_SIN_PERMISOS, 403)
             g.usuario = usuario
             return funcion(*args, **kwargs)
 
@@ -140,8 +184,33 @@ def asegurar_esquema():
     try:
         with conn.cursor() as cur:
             asegurar_columna(cur, "inventario", "categoria", "VARCHAR(100) NOT NULL DEFAULT 'Sin clasificar'")
-            asegurar_columna(cur, "usuarios", "rol", "ENUM('admin','empleado') NOT NULL DEFAULT 'empleado'")
+            asegurar_columna(cur, "usuarios", "rol", "ENUM('admin','empleado','cliente') NOT NULL DEFAULT 'cliente'")
+            asegurar_columna(cur, "usuarios", "email", "VARCHAR(255) NULL")
             asegurar_columna(cur, "usuarios", "activo", "BOOLEAN NOT NULL DEFAULT TRUE")
+            # Bases antiguas: el ENUM podía no incluir 'cliente'. Se amplía sin tocar los datos.
+            cur.execute(
+                "ALTER TABLE usuarios MODIFY COLUMN rol "
+                "ENUM('admin','empleado','cliente') NOT NULL DEFAULT 'cliente'"
+            )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS citas (
+                  id INT NOT NULL AUTO_INCREMENT,
+                  cliente_id INT NOT NULL,
+                  fecha_hora DATETIME NOT NULL,
+                  descripcion TEXT DEFAULT NULL,
+                  estado ENUM('pendiente','confirmada','completada','cancelada') NOT NULL DEFAULT 'pendiente',
+                  ubicacion VARCHAR(255) DEFAULT NULL,
+                  presupuesto_estimado DECIMAL(10,2) DEFAULT 0.00,
+                  create_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+                  PRIMARY KEY (id),
+                  KEY idx_cliente (cliente_id),
+                  CONSTRAINT fk_citas_cliente FOREIGN KEY (cliente_id) REFERENCES usuarios (id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+                """
+            )
+            asegurar_columna(cur, "citas", "ubicacion", "VARCHAR(255) DEFAULT NULL")
+            asegurar_columna(cur, "citas", "presupuesto_estimado", "DECIMAL(10,2) DEFAULT 0.00")
             asegurar_columna(cur, "recibos", "efectivo_recibido", "DECIMAL(10,2) NULL")
             asegurar_columna(cur, "recibos", "cambio", "DECIMAL(10,2) NOT NULL DEFAULT 0.00")
             cur.execute("UPDATE usuarios SET rol='admin' WHERE username='admin'")
@@ -233,6 +302,11 @@ def login():
     )
 
 
+@app.route("/api/version", methods=["GET"])
+def version():
+    return jsonify({"ok": True, "version": VERSION})
+
+
 @app.route("/api/sesion", methods=["GET"])
 def sesion():
     usuario = usuario_actual()
@@ -258,8 +332,14 @@ def registro():
 
     if not username or not password or not nombre:
         return error("Usuario, contraseña y nombre son obligatorios.")
+    if len(username) > 16:
+        return error("El usuario no puede superar 16 caracteres.")
     if len(password) < 8:
         return error("La contraseña debe tener al menos 8 caracteres.")
+    if len(nombre) > 100:
+        return error("El nombre no puede superar 100 caracteres.")
+    if email and len(email) > 255:
+        return error("El correo no puede superar 255 caracteres.")
 
     conn = conectar()
     try:
@@ -272,7 +352,7 @@ def registro():
     except pymysql.err.IntegrityError as exc:
         conn.rollback()
         if exc.args and exc.args[0] == 1062:
-            return error("El nombre de usuario ya está en uso.", 409)
+            return error("El nombre de usuario ya existe.", 409)
         raise
     finally:
         conn.close()
@@ -310,7 +390,7 @@ def listar_inventario():
 
 
 @app.route("/api/inventario", methods=["POST"])
-@requiere(admin=True)
+@requiere(admin=True)  # los clientes reciben 403 "No tienes permisos para esta acción."
 def crear_producto():
     data = request.get_json(silent=True) or {}
     nombre = (data.get("nombre") or "").strip()
@@ -386,7 +466,7 @@ def eliminar_producto(pid):
 
 # -------------------------------------------------------------------- ventas
 @app.route("/api/ventas", methods=["POST"])
-@requiere()
+@requiere(personal=True)
 def registrar_venta():
     data = request.get_json(silent=True) or {}
     items = data.get("productos")
@@ -547,8 +627,9 @@ def listar_usuarios():
     conn = conectar()
     try:
         with conn.cursor() as cur:
+            # Todos los roles: admin, empleado y cliente.
             cur.execute("SELECT id, username, nombre_completo, email, rol, activo FROM usuarios ORDER BY id")
-            usuarios = cur.fetchall()
+            usuarios = [limpiar(f) for f in cur.fetchall()]
     finally:
         conn.close()
     return jsonify(usuarios)
@@ -604,6 +685,182 @@ def desactivar_usuario(uid):
                 conn.rollback()
                 return error("Usuario no encontrado.", 404)
         conn.commit()
+    finally:
+        conn.close()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/usuarios/<int:uid>/password", methods=["PATCH"])
+@requiere(admin=True)
+def cambiar_password_usuario(uid):
+    data = request.get_json(silent=True) or {}
+    nueva = data.get("nueva_password")
+    if not isinstance(nueva, str) or len(nueva) < 8:
+        return error("La nueva contraseña debe tener al menos 8 caracteres.")
+
+    conn = conectar()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM usuarios WHERE id=%s", (uid,))
+            if cur.fetchone() is None:
+                return error("Usuario no encontrado.", 404)
+            cur.execute(
+                "UPDATE usuarios SET password=%s WHERE id=%s",
+                (generate_password_hash(nueva), uid),
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        traceback.print_exc()
+        return error("No se pudo actualizar la contraseña.", 500)
+    finally:
+        conn.close()
+    return jsonify({"ok": True})
+
+
+# --------------------------------------------------------------------- citas
+def interpretar_fecha_hora(valor):
+    """Acepta DATETIME local ('2026-11-05T10:30', '2026-11-05 10:30[:00]')."""
+    if not isinstance(valor, str) or not valor.strip():
+        return None
+    texto = valor.strip().replace("T", " ")
+    for formato in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            return datetime.strptime(texto, formato)
+        except ValueError:
+            continue
+    return None
+
+
+@app.route("/api/citas", methods=["POST"])
+@requiere()
+def crear_cita():
+    data = request.get_json(silent=True) or {}
+    fecha = interpretar_fecha_hora(data.get("fecha_hora"))
+    descripcion = (data.get("descripcion") or "").strip()
+    ubicacion = (data.get("ubicacion") or "").strip() or None
+    cliente_id = g.usuario["id"]  # un cliente siempre agenda para sí mismo
+
+    if g.usuario["rol"] in ("empleado", "admin"):
+        try:
+            cliente_id = int(data.get("cliente_id"))
+        except (TypeError, ValueError):
+            return error("Selecciona el cliente de la cita.")
+
+    if fecha is None:
+        return error("La fecha y hora de la cita no son válidas.")
+    if not descripcion:
+        return error("La descripción de la cita es obligatoria.")
+    if ubicacion and len(ubicacion) > 255:
+        return error("La ubicación no puede superar 255 caracteres.")
+
+    conn = conectar()
+    try:
+        with conn.cursor() as cur:
+            if cliente_id != g.usuario["id"]:
+                cur.execute(
+                    "SELECT id FROM usuarios WHERE id=%s AND rol='cliente' AND activo=TRUE",
+                    (cliente_id,),
+                )
+                if cur.fetchone() is None:
+                    return error("El cliente seleccionado no existe o está inactivo.", 404)
+            cur.execute(
+                "INSERT INTO citas (cliente_id, fecha_hora, descripcion, ubicacion, estado) "
+                "VALUES (%s, %s, %s, %s, 'pendiente')",
+                (cliente_id, fecha, descripcion, ubicacion),
+            )
+            cita_id = cur.lastrowid
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        traceback.print_exc()
+        return error("No se pudo guardar la cita.", 500)
+    finally:
+        conn.close()
+    return jsonify({"ok": True, "id": cita_id}), 201
+
+
+@app.route("/api/clientes", methods=["GET"])
+@requiere(personal=True)
+def listar_clientes():
+    """Clientes activos, para que empleado/admin agenden una cita a su nombre."""
+    conn = conectar()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, username, nombre_completo, email FROM usuarios "
+                "WHERE rol='cliente' AND activo=TRUE ORDER BY nombre_completo, username"
+            )
+            clientes = [limpiar(f) for f in cur.fetchall()]
+    finally:
+        conn.close()
+    return jsonify(clientes)
+
+
+@app.route("/api/citas", methods=["GET"])
+@requiere()
+def listar_citas():
+    conn = conectar()
+    try:
+        with conn.cursor() as cur:
+            if g.usuario["rol"] == "cliente":
+                cur.execute(
+                    "SELECT * FROM citas WHERE cliente_id = %s ORDER BY fecha_hora DESC",
+                    (g.usuario["id"],),
+                )
+            else:  # 'empleado' o 'admin'
+                cur.execute(
+                    "SELECT c.*, u.nombre_completo, u.email, u.username "
+                    "FROM citas c JOIN usuarios u ON c.cliente_id = u.id "
+                    "ORDER BY c.fecha_hora DESC"
+                )
+            citas = [limpiar(f) for f in cur.fetchall()]
+    finally:
+        conn.close()
+    return jsonify(citas)
+
+
+@app.route("/api/citas/<int:cid>", methods=["PATCH"])
+@requiere(personal=True)
+def actualizar_cita(cid):
+    data = request.get_json(silent=True) or {}
+    cambios, valores = [], []
+
+    if "estado" in data:
+        estado = str(data.get("estado") or "").strip().lower()
+        if estado not in ESTADOS_CITA:
+            return error("Estado inválido. Usa: " + ", ".join(ESTADOS_CITA) + ".")
+        cambios.append("estado=%s")
+        valores.append(estado)
+
+    if data.get("presupuesto_estimado") is not None:
+        try:
+            presupuesto = dinero(data.get("presupuesto_estimado"))
+        except (InvalidOperation, TypeError, ValueError):
+            return error("Presupuesto estimado inválido.")
+        if presupuesto < 0 or presupuesto > Decimal("99999999.99"):
+            return error("El presupuesto estimado debe estar entre 0 y 99,999,999.99.")
+        cambios.append("presupuesto_estimado=%s")
+        valores.append(presupuesto)
+
+    if not cambios:
+        return error("Indica el estado y/o el presupuesto estimado a actualizar.")
+
+    conn = conectar()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM citas WHERE id=%s", (cid,))
+            if cur.fetchone() is None:
+                return error("Cita no encontrada.", 404)
+            cur.execute(
+                f"UPDATE citas SET {', '.join(cambios)} WHERE id=%s",
+                (*valores, cid),
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        traceback.print_exc()
+        return error("No se pudo actualizar la cita.", 500)
     finally:
         conn.close()
     return jsonify({"ok": True})
