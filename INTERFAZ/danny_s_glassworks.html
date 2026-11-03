@@ -9,7 +9,7 @@
 <style>
 :root{--bg:#fff;--soft:#f7f8fa;--nav:#eef0f3;--border:#e1e5ea;--ink:#171a21;--muted:#687180;--green:#16834a;--greenbg:#eaf8ef;--red:#bd3030;--redbg:#fff0f0;--yellow:#8b6500;--yellowbg:#fff7dc}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,Arial,sans-serif;font-size:14px}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}.serif{font-family:Lora,Georgia,serif}
-#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--soft)}.login-box{background:white;border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:390px;box-shadow:0 10px 35px #1018280a}.login-head{text-align:center;margin-bottom:25px}.logo{width:48px;height:48px;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;margin:0 auto 14px;font-size:22px}.login-head h1{font-size:23px;margin:0}.login-head p{color:var(--muted);margin:7px 0 0}
+#login-page,#registro-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--soft)}.login-box{background:white;border:1px solid var(--border);border-radius:16px;padding:30px;width:100%;max-width:390px;box-shadow:0 10px 35px #1018280a}.login-head{text-align:center;margin-bottom:25px}.logo{width:48px;height:48px;border:1px solid var(--border);border-radius:12px;display:grid;place-items:center;margin:0 auto 14px;font-size:22px}.login-head h1{font-size:23px;margin:0}.login-head p{color:var(--muted);margin:7px 0 0}
 label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}.field{margin-bottom:15px}.input{width:100%;padding:11px 12px;border:1px solid #cbd1d9;border-radius:8px;background:white;color:var(--ink);outline:none}.input:focus{border-color:#505b6a;box-shadow:0 0 0 3px #6670851c}
 .btn{border:1px solid var(--border);background:white;color:var(--ink);border-radius:8px;padding:9px 13px;font-weight:600}.btn:hover{background:var(--soft)}.primary{background:var(--ink);color:white;border-color:var(--ink)}.primary:hover{background:#303743}.danger{color:var(--red)}.btn:disabled{opacity:.55;cursor:not-allowed}.error{color:var(--red);font-size:13px;margin:0 0 12px}
 #app-page{min-height:100vh}.header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--border);background:white;position:sticky;top:0;z-index:5}.brand{display:flex;align-items:center;gap:11px}.brand-logo{width:36px;height:36px;border:1px solid var(--border);border-radius:9px;display:grid;place-items:center}.brand h1{font-size:15px;margin:0}.brand p{font-size:11px;color:var(--muted);margin:3px 0 0}.nav{display:flex;gap:5px;background:var(--nav);padding:4px;border-radius:10px;flex-wrap:wrap}.nav button{border:0;background:transparent;padding:8px 11px;border-radius:7px;color:#525b68;font-size:13px}.nav button.active{background:white;color:var(--ink);box-shadow:0 1px 3px #0001}.account{display:flex;align-items:center;gap:10px}.account-info{text-align:right}.account-name{font-weight:600;font-size:13px;display:block}.role{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700}
@@ -307,9 +307,19 @@ function renderCatalog(){
 $("category-counts").addEventListener("error",e=>{
   if(e.target.tagName==="IMG"){const na=document.createElement("span");na.className="na";na.textContent="N/A";e.target.replaceWith(na);}
 },true);
+function aplicarFondoLogin(){
+  const url=imgUrl("login");  // RECURSOS/login.(jpg|png|webp|...), sin importar mayúsculas
+  if(!url)return;
+  ["login-page","registro-page"].forEach(id=>{
+    const el=$(id);
+    el.style.backgroundImage=`linear-gradient(rgba(0,0,0,.28),rgba(0,0,0,.28)),url("${url}")`;
+    el.style.backgroundSize="cover"; el.style.backgroundPosition="center"; el.style.backgroundRepeat="no-repeat";
+  });
+}
 async function loadWelcomeData(){
   try{imageMap=await api("/api/imagenes");}catch(_){imageMap={};}
   applyBranding();
+  aplicarFondoLogin();
   try{catalogData=await api("/api/catalogo");}catch(_){catalogData=null;}
   renderHeroStats();
   if(!$("public-catalog").classList.contains("hidden")&&catalogData)renderCatalog();
